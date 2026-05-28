@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=9">
+    <title>Calculadora Solar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Afacad:wght@400;500&family=Comfortaa:wght@300;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --bg-color: #808080; 
+            --container-bg: #FFFFFF; 
+            --border-color: rgba(10,10,10,0.56); 
+            --text-main: #474747; 
+            --accent-dark: #3d3d3d; 
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; padding: 2rem 1rem; min-height: 100vh;
+            font-family: 'Afacad', sans-serif;
+            background-color: #808080;
+            display: flex; justify-content: center; align-items: flex-start;
+        }
+        #main {
+            width: 100%; max-width: 45rem;
+            background-color: #FFFFFF;
+            border: 2px solid rgba(10,10,10,0.56);
+            padding: 2.5rem;
+            box-shadow: 15px 15px 0px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-family: 'Comfortaa', sans-serif; font-size: 1.4rem;
+            letter-spacing: 0.2rem; text-transform: uppercase;
+            color: #474747; margin-bottom: 2rem; text-align: center;
+        }
+        .section-title {
+            font-family: 'Comfortaa', sans-serif; font-size: 0.75rem;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.1rem;
+            color: #3d3d3d; margin: 1.5rem 0 0.8rem 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 5px;
+        }
+        .grid-row { display: table; width: 100%; table-layout: fixed; border-spacing: 10px; }
+        .grid-col { display: table-cell; vertical-align: top; }
+        label { font-size: 0.75rem; color: #777; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 500; }
+        input, select {
+            width: 100%; padding: 0.6rem; border: 1px solid rgba(10,10,10,0.56);
+            font-family: 'Afacad', sans-serif; font-size: 0.9rem;
+            background: transparent; color: #474747; margin-bottom: 12px;
+        }
+        #container-strings { 
+            background: #f9f9f9; padding: 15px; border: 1px dashed #474747; margin: 10px 0;
+        }
+        button {
+            margin-top: 1.5rem; width: 100%; padding: 1rem;
+            background-color: #3d3d3d; color: #FFFFFF;
+            border: none; font-family: 'Afacad', sans-serif;
+            text-transform: uppercase; letter-spacing: 0.15rem; cursor: pointer;
+        }
+        .table-wrapper { margin-top: 2rem; display: none; }
+        table {
+            width: 100%; border-collapse: collapse;
+            font-family: 'Comfortaa', sans-serif; font-size: 0.7rem; text-transform: uppercase;
+        }
+        th { background-color: #f2f2f2; border: 1px solid #3d3d3d; padding: 10px; color: #3d3d3d; }
+        td { border: 1px solid #3d3d3d; padding: 8px; font-weight: 400; color: #474747; }
+    </style>
+
+    <hta:application 
+        id="CalculadoraSolar"
+        applicationname="Calculadora Solar"
+        border="thin"
+        caption="yes"
+        showintaskbar="yes"
+        singleinstance="yes"
+        sysmenu="yes"
+        windowstate="normal"
+    />
+
+    <script language="javascript">
+        // Função para navegação entre HTAs
+        function trocarPagina(arquivo) {
+            // Corrigido de .scr para .src
+            if(document.getElementById('meuConteudo')) {
+                document.getElementById('meuConteudo').src = arquivo;
+            } else {
+                window.location.href = arquivo;
+            }
+        }
+
+        function gerarCamposStrings() {
+            var qtd = parseInt(document.getElementById('n_strings').value) || 0;
+            var container = document.getElementById('container-strings');
+            container.innerHTML = '<div style="font-size:0.65rem; color:#888; font-weight:600">DISTÂNCIAS UNITÁRIAS (M):</div>';
+            for (var i = 1; i <= qtd; i++) {
+                var div = document.createElement('div');
+                div.style.display = "inline-block";
+                div.style.marginRight = "10px";
+                div.innerHTML = '<label style="font-size:0.6rem">ST ' + i + '</label><input type="number" class="dist-st" value="15" style="width:60px; padding:4px">';
+                container.appendChild(div);
+            }
+        }
+
+        function calcular() {
+            var n_hastes = parseInt(document.getElementById('n_hastes').value) || 0;
+            var secc_at = document.getElementById('secc_at').value;
+            var d_at = parseFloat(document.getElementById('d_at').value) || 0;
+            var n_arranjos = parseInt(document.getElementById('n_arranjos').value) || 0;
+            var n_sb = parseInt(document.getElementById('n_sb').value) || 0;
+            var d_sb = parseFloat(document.getElementById('d_sb').value) || 0;
+            var d_descida = parseFloat(document.getElementById('d_descida').value) || 0;
+            var spda = document.getElementById('spda').value;
+
+            var inputsDist = document.getElementsByClassName('dist-st');
+            var somaDistStrings = 0;
+            for (var j = 0; j < inputsDist.length; j++) {
+                somaDistStrings += (parseFloat(inputsDist[j].value) || 0);
+            }
+
+            var cabo_nu = d_at + (2.4 * (Math.max(0, n_hastes - 1)));
+            var secc_eqp = (spda == "1") ? 16 : 6;
+            var term_m6 = (n_arranjos * 2) + n_sb + 1;
+            var cabo_eqp = (2.5 * term_m6) + d_at;
+            var cabo_cc_parcial = (somaDistStrings + (inputsDist.length * (d_descida + d_sb)));
+
+            var materiais = [
+                [ "Cabo de Cobre Nu | " + secc_at + "mm2", cabo_nu.toFixed(2), "m" ],
+                [ "Haste Aterramento 5/8 (2400mm)", n_hastes, "un" ],
+                [ "Conector Split-Bolt " + secc_at + "mm2", n_hastes * 2, "un" ],
+                [ "Caixa de Inspeção PVC 300x300", n_hastes, "un" ],
+                [ "Cabo 1kV " + secc_eqp + "mm2 HEPR Verde", cabo_eqp.toFixed(2), "m" ],
+                [ "Terminal de Compressão M6 - " + secc_eqp + "mm2", term_m6, "un" ],
+                [ "Cabo Solar 1,8KVCC Preto (6mm2)", cabo_cc_parcial.toFixed(2), "m" ],
+                [ "Cabo Solar 1,8KVCC Vermelho (6mm2)", cabo_cc_parcial.toFixed(2), "m" ]
+            ];
+
+            var tbody = document.getElementById('corpoTabela');
+            while (tbody.rows.length > 0) { tbody.deleteRow(0); }
+
+            for (var k = 0; k < materiais.length; k++) {
+                var row = tbody.insertRow(-1);
+                var cell1 = row.insertCell(0);
+                var cell2 = row.insertCell(1);
+                var cell3 = row.insertCell(2);
+                cell1.innerHTML = materiais[k][0];
+                cell2.innerHTML = materiais[k][1];
+                cell3.innerHTML = materiais[k][2];
+            }
+            document.getElementById('resultadoArea').style.display = "block";
+        }
+
+        // Função de Exportação utilizando FileSystemObject (Padrão HTA)
+        function exportarCSV() {
+            try {
+                var fso = new ActiveXObject("Scripting.FileSystemObject");
+                var caminho = "quantitativo_solar.csv";
+                var arquivo = fso.CreateTextFile(caminho, true);
+
+                var tabela = document.getElementById("tabelaMateriais");
+                var csvContent = "";
+
+                for (var i = 0; i < tabela.rows.length; i++) {
+                    var rowData = [];
+                    for (var j = 0; j < tabela.rows[i].cells.length; j++) {
+                        // Limpa o texto e usa ponto e vírgula como separador para Excel BR
+                        var texto = tabela.rows[i].cells[j].innerText.replace(/,/g, ".");
+                        rowData.push('"' + texto + '"');
+                    }
+                    csvContent += rowData.join(";") + "\r\n";
+                }
+
+                arquivo.Write(csvContent);
+                arquivo.Close();
+                alert("Sucesso! O arquivo 'quantitativo_solar.csv' foi salvo na mesma pasta deste programa.");
+            } catch (err) {
+                alert("Erro ao exportar: " + err.message + "\nVerifique se o arquivo não está aberto no Excel.");
+            }
+        }
+    </script>
+</head>
+
+<body>
+<center>
+<div id="main">
+    <h1>Quantitativo Solar</h1>
+    
+    <div class="menu">
+        <button onclick="trocarPagina('lista_de_materiais.hta')">Acessar Tabela Mãe</button>
+    </div>
+
+    <div class="grid-row">
+        <div class="grid-col">
+            <div class="section-title">Infra e Aterramento</div>
+            <label>Nº de Hastes</label>
+            <input type="number" id="n_hastes" value="3">
+            
+            <label>Cabo Cobre Nu (mm²)</label>
+            <input type="number" id="secc_at" value="35">
+
+            <label>Dist. Haste até BEP (m)</label>
+            <input type="number" id="d_at" value="10">
+
+            <label>Nº de Arranjos (Matrizes)</label>
+            <input type="number" id="n_arranjos" value="2">
+        </div>
+
+        <div class="grid-col">
+            <div class="section-title">Circuitos CC</div>
+            <label>Qtd Total de Strings</label>
+            <input type="number" id="n_strings" value="2" onchange="gerarCamposStrings()">
+            
+            <label>Qtd Stringbox</label>
+            <input type="number" id="n_sb" value="1">
+
+            <label>Dist. SB até Inversor (m)</label>
+            <input type="number" id="d_sb" value="5">
+
+            <label>Descida / Prumada (m)</label>
+            <input type="number" id="d_descida" value="15">
+        </div>
+    </div>
+
+    <div id="container-strings"></div>
+
+    <div style="width: 100%;">
+        <label>SPDA no local?</label>
+        <select id="spda">
+            <option value="0">Não (Equipot. 6mm²)</option>
+            <option value="1">Sim (Equipot. 16mm²)</option>
+        </select>
+    </div>
+
+    <button onclick="calcular()">Gerar Lista Completa</button>
+
+    <div class="table-wrapper" id="resultadoArea">
+        <table id="tabelaMateriais">
+            <thead>
+                <tr>
+                    <th>Material</th>
+                    <th>Qtd</th>
+                    <th>Un</th>
+                </tr>
+            </thead>
+            <tbody id="corpoTabela"></tbody>
+        </table>
+        <button style="background-color: #555" onclick="exportarCSV()">📥 Exportar para CSV</button>
+    </div>
+</div>
+</center>
+
+<script>
+    // Inicialização ao carregar
+    gerarCamposStrings();
+</script>
+
+</body>
+</html>

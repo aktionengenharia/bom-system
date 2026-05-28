@@ -1,0 +1,54 @@
+# ============================================================
+# .gitignore - BOM System - ATM Engenharia
+# ============================================================
+
+# --- Python / Backend ---
+backend/venv/
+backend/.env
+backend/bom_system.db
+backend/test.db
+backend/__pycache__/
+backend/app/__pycache__/
+backend/app/routers/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+
+# --- Node / Frontend ---
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.production
+
+# --- Claude Code (interno) ---
+.claude/
+
+# --- Pasta obsoleta ---
+_Obsoleto/
+
+# --- IDEs ---
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Arquivos sensiveis ---
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+
+# --- Logs ---
+*.log
+npm-debug.log*
+
+# --- Temporarios ---
+*.tmp
+*.temp

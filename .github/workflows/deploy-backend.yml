@@ -1,0 +1,66 @@
+# ============================================================
+# Deploy automático do Backend FastAPI → Railway
+# O Railway detecta push no main e faz redeploy automaticamente
+# Este workflow apenas valida que o backend importa sem erros
+# ============================================================
+name: Validar Backend (CI)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Instalar dependências
+        working-directory: backend
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Validar importação do app
+        working-directory: backend
+        env:
+          DATABASE_URL: sqlite:///./test.db
+          SECRET_KEY: test-secret-key-para-ci
+          ALGORITHM: HS256
+          ACCESS_TOKEN_EXPIRE_MINUTES: 480
+          ALLOWED_ORIGINS: http://localhost:5173
+        run: python -c "from app.main import app; print('Backend OK')"
+
+      - name: Verificar rotas da API
+        working-directory: backend
+        env:
+          DATABASE_URL: sqlite:///./test.db
+          SECRET_KEY: test-secret-key-para-ci
+          ALGORITHM: HS256
+          ACCESS_TOKEN_EXPIRE_MINUTES: 480
+          ALLOWED_ORIGINS: http://localhost:5173
+        run: |
+          python -c "
+          from app.main import app
+          routes = [r.path for r in app.routes]
+          print(f'Total de rotas: {len(routes)}')
+          assert '/api/auth/login' in routes, 'Rota de login não encontrada!'
+          assert '/api/materiais' in routes, 'Rota de materiais não encontrada!'
+          print('Todas as rotas OK')
+          "
