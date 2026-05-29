@@ -46,10 +46,10 @@ jobs:
       - name: Build de produção
         working-directory: frontend
         env:
-          # URL do backend Railway – configure em Settings → Secrets → VITE_API_URL
+          # URL do backend Railway (Secret configurado em Settings → Secrets → Actions)
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
-          # Se o repositório não estiver na raiz (ex: github.io/bom-system), coloque /bom-system/
-          VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH || '/' }}
+          # Base path para GitHub Pages: /bom-system/ (nome do repositório)
+          VITE_BASE_PATH: /bom-system/
         run: npm run build
 
       - name: Configurar Pages
