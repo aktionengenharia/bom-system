@@ -36,24 +36,17 @@ export const materials = {
 
   delete: async (id: number) => api.delete(`/materiais/${id}`),
 
-  exportExcel: () => {
-    const token = localStorage.getItem('token')
-    const url = '/api/materiais/export/excel'
+  exportExcel: async () => {
+    const res = await api.get('/materiais/export/excel', { responseType: 'blob' })
+    const blob = new Blob([res.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+    const blobUrl = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url
-    a.setAttribute(
-      'download',
-      `materiais_${new Date().toISOString().slice(0, 10)}.xlsx`
-    )
-    // Use fetch to add auth header
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => res.blob())
-      .then((blob) => {
-        const blobUrl = URL.createObjectURL(blob)
-        a.href = blobUrl
-        a.click()
-        URL.revokeObjectURL(blobUrl)
-      })
+    a.href = blobUrl
+    a.download = `materiais_${new Date().toISOString().slice(0, 10)}.xlsx`
+    a.click()
+    URL.revokeObjectURL(blobUrl)
   },
 
   importExcel: async (file: File) => {

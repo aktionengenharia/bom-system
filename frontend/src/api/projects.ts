@@ -62,18 +62,18 @@ export const bom = {
   deleteItem: async (projetoId: number, bomId: number, itemId: number) =>
     api.delete(`/projetos/${projetoId}/bom/${bomId}/items/${itemId}`),
 
-  exportExcel: (projetoId: number, bomId: number) => {
-    const token = localStorage.getItem('token')
-    const url = `/api/projetos/${projetoId}/bom/${bomId}/export`
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => res.blob())
-      .then((blob) => {
-        const blobUrl = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = blobUrl
-        a.setAttribute('download', `BOM_${projetoId}_rev${bomId}.xlsx`)
-        a.click()
-        URL.revokeObjectURL(blobUrl)
-      })
+  exportExcel: async (projetoId: number, bomId: number) => {
+    const res = await api.get(`/projetos/${projetoId}/bom/${bomId}/export`, {
+      responseType: 'blob',
+    })
+    const blob = new Blob([res.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+    const blobUrl = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = blobUrl
+    a.download = `BOM_projeto${projetoId}_rev${bomId}.xlsx`
+    a.click()
+    URL.revokeObjectURL(blobUrl)
   },
 }
