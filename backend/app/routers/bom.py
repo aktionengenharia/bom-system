@@ -210,7 +210,7 @@ async def export_bom_excel(
     ws = wb.active
     ws.title = f"BOM Rev{bom.revisao}"
 
-    from openpyxl.styles import Font, PatternFill, Alignment, numbers
+    from openpyxl.styles import Font, PatternFill, Alignment
 
     # Header info
     ws["A1"] = "LISTA DE MATERIAIS"

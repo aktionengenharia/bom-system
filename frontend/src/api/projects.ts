@@ -64,7 +64,7 @@ export const bom = {
 
   exportExcel: async (projetoId: number, bomId: number) => {
     const res = await api.get(`/projetos/${projetoId}/bom/${bomId}/export`, {
-      responseType: 'blob',
+      responseType: 'arraybuffer',
     })
     const blob = new Blob([res.data], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -73,7 +73,9 @@ export const bom = {
     const a = document.createElement('a')
     a.href = blobUrl
     a.download = `BOM_projeto${projetoId}_rev${bomId}.xlsx`
+    document.body.appendChild(a)
     a.click()
+    document.body.removeChild(a)
     URL.revokeObjectURL(blobUrl)
   },
 }

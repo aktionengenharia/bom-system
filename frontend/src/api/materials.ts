@@ -37,7 +37,7 @@ export const materials = {
   delete: async (id: number) => api.delete(`/materiais/${id}`),
 
   exportExcel: async () => {
-    const res = await api.get('/materiais/export/excel', { responseType: 'blob' })
+    const res = await api.get('/materiais/export/excel', { responseType: 'arraybuffer' })
     const blob = new Blob([res.data], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     })
@@ -45,7 +45,9 @@ export const materials = {
     const a = document.createElement('a')
     a.href = blobUrl
     a.download = `materiais_${new Date().toISOString().slice(0, 10)}.xlsx`
+    document.body.appendChild(a)
     a.click()
+    document.body.removeChild(a)
     URL.revokeObjectURL(blobUrl)
   },
 
